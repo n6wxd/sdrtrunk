@@ -481,17 +481,6 @@ public class DMRTrafficChannelManager extends TrafficChannelManager implements I
         return null;
     }
 
-    @Override
-    public void dispose()
-    {
-        super.dispose();
-
-        for(Channel trafficChannel : mAvailableTrafficChannelQueue)
-        {
-            broadcast(new ChannelEvent(trafficChannel, Event.REQUEST_DISABLE));
-        }
-    }
-
     /**
      * Implements the IDecodeEventProvider interface to provide channel events to an external listener.
      */
@@ -536,6 +525,8 @@ public class DMRTrafficChannelManager extends TrafficChannelManager implements I
     @Override
     public void stop()
     {
+        mAvailableTrafficChannelQueue.clear();
+
         List<Channel> channels = new ArrayList<>(mAllocatedTrafficChannelFrequencyMap.values());
 
         //Issue a disable request for each traffic channel

@@ -309,15 +309,6 @@ public class SingleChannelState extends AbstractChannelState implements IDecoder
         mSquelchController.setSquelchLock(false);
     }
 
-    public void dispose()
-    {
-        //Must invoke parent dispose to unregister from the event bus
-        super.dispose();
-
-        mDecodeEventListener = null;
-        mDecoderStateListener = null;
-    }
-
     @Override
     public Listener<SourceEvent> getSourceEventListener()
     {

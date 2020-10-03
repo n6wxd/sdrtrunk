@@ -236,11 +236,4 @@ public abstract class JmbeAudioModule extends AbstractAudioModule implements Lis
             mAudioCodec = null;
         }
     }
-
-    @Override
-    public void dispose()
-    {
-        super.dispose();
-        mAudioCodec = null;
-    }
 }

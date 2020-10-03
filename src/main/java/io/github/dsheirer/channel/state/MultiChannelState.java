@@ -396,14 +396,6 @@ public class MultiChannelState extends AbstractChannelState implements IDecoderS
         }
     }
 
-    public void dispose()
-    {
-        super.dispose();
-
-        mDecodeEventListener = null;
-        mDecoderStateListener = null;
-    }
-
     @Override
     public Listener<SourceEvent> getSourceEventListener()
     {
@@ -521,6 +513,7 @@ public class MultiChannelState extends AbstractChannelState implements IDecoderS
                         {
                             broadcast(SourceEvent.frequencyErrorMeasurementSyncLocked(sourceEvent.getValue().longValue(),
                                 getChannel().getChannelType().name()));
+                            return;
                         }
                     }
                     break;

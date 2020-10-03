@@ -36,7 +36,6 @@ public class DecodeConfigDMR extends DecodeConfiguration
 {
     private int mTrafficChannelPoolSize = TRAFFIC_CHANNEL_LIMIT_DEFAULT;
     private boolean mIgnoreDataCalls = true;
-    private long mChannelRotationDelay = 0l;
     private List<TimeslotFrequency> mTimeslotMap = new ArrayList<>();
 
     public DecodeConfigDMR()
@@ -119,30 +118,6 @@ public class DecodeConfigDMR extends DecodeConfiguration
     public ChannelSpecification getChannelSpecification()
     {
         return new ChannelSpecification(50000.0, 12500, 6500.0, 7200.0);
-    }
-
-    /**
-     * Channel rotation delay.  This setting is used when multiple channel frequencies are defined in the source
-     * config and controls how long the decoder will remaining on each frequency until the channel is identified as
-     * active or the channel is identified as inactive and a change frequency request is issued.
-     *
-     * Note: this value is ignored when the source config contains a single frequency.
-     *
-     * @return channel rotation delay in milliseconds.
-     */
-    @JacksonXmlProperty(isAttribute = true, localName = "channel_rotation_delay")
-    public long getChannelRotationDelay()
-    {
-        return mChannelRotationDelay;
-    }
-
-    /**
-     * Sets the channel rotation delay.
-     * @param channelRotationDelay in milliseconds.
-     */
-    public void setChannelRotationDelay(long channelRotationDelay)
-    {
-        mChannelRotationDelay = channelRotationDelay;
     }
 
     /**

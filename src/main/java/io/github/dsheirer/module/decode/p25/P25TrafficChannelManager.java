@@ -646,21 +646,6 @@ public class P25TrafficChannelManager extends TrafficChannelManager implements I
         return null;
     }
 
-    @Override
-    public void dispose()
-    {
-        super.dispose();
-        for(Channel trafficChannel : mAvailablePhase1TrafficChannelQueue)
-        {
-            broadcast(new ChannelEvent(trafficChannel, Event.REQUEST_DISABLE));
-        }
-
-        for(Channel trafficChannel : mAvailablePhase2TrafficChannelQueue)
-        {
-            broadcast(new ChannelEvent(trafficChannel, Event.REQUEST_DISABLE));
-        }
-    }
-
     /**
      * Implements the IDecodeEventProvider interface to provide channel events to an external listener.
      */
@@ -692,6 +677,9 @@ public class P25TrafficChannelManager extends TrafficChannelManager implements I
     @Override
     public void stop()
     {
+        mAvailablePhase1TrafficChannelQueue.clear();
+        mAvailablePhase2TrafficChannelQueue.clear();
+
         List<Channel> channels = new ArrayList<>(mAllocatedTrafficChannelMap.values());
 
         //Issue a disable request for each traffic channel

@@ -101,14 +101,6 @@ public abstract class DMRDecoder extends FeedbackDecoder implements ISourceEvent
         return (float)(getSampleRate() / getSymbolRate());
     }
 
-    public void dispose()
-    {
-        super.dispose();
-
-        mMessageProcessor.dispose();
-        mMessageProcessor = null;
-    }
-
     /**
      * Sets the source event listener to receive source events from this decoder.
      */

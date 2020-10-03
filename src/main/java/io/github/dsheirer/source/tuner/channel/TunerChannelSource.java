@@ -117,13 +117,6 @@ public abstract class TunerChannelSource extends ComplexSource implements ISourc
         return mTunerChannel;
     }
 
-    @Override
-    public void dispose()
-    {
-        super.dispose();
-        stop();
-    }
-
     /**
      * Starts this tuner channel source producing sample stream.
      */

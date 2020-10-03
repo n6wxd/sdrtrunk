@@ -164,7 +164,7 @@ public class DecoderFactory
                 processLTRNet(channel, modules, aliasList, (DecodeConfigLTRNet) decodeConfig);
                 break;
             case MPT1327:
-                processMPT1327(channelMapModel, channel, userPreferences, modules, aliasList, channelType, (DecodeConfigMPT1327) decodeConfig);
+                processMPT1327(channelMapModel, channel, modules, aliasList, channelType, (DecodeConfigMPT1327) decodeConfig);
                 break;
             case PASSPORT:
                 processPassport(channel, modules, aliasList, decodeConfig);
@@ -226,7 +226,8 @@ public class DecoderFactory
         {
             List<State> activeStates = new ArrayList<>();
             activeStates.add(State.CONTROL);
-            modules.add(new ChannelRotationMonitor(activeStates, userPreferences));
+            modules.add(new ChannelRotationMonitor(activeStates,
+                ((SourceConfigTunerMultipleFrequency)channel.getSourceConfiguration()).getFrequencyRotationDelay()));
         }
     }
 
@@ -240,7 +241,7 @@ public class DecoderFactory
         }
     }
 
-    private static void processMPT1327(ChannelMapModel channelMapModel, Channel channel, UserPreferences userPreferences, List<Module> modules, AliasList aliasList, ChannelType channelType, DecodeConfigMPT1327 decodeConfig) {
+    private static void processMPT1327(ChannelMapModel channelMapModel, Channel channel, List<Module> modules, AliasList aliasList, ChannelType channelType, DecodeConfigMPT1327 decodeConfig) {
         DecodeConfigMPT1327 mptConfig = decodeConfig;
         ChannelMap channelMap = channelMapModel.getChannelMap(mptConfig.getChannelMapName());
         Sync sync = mptConfig.getSync();
@@ -277,7 +278,8 @@ public class DecoderFactory
         {
             List<State> activeStates = new ArrayList<>();
             activeStates.add(State.CONTROL);
-            modules.add(new ChannelRotationMonitor(activeStates, userPreferences));
+            modules.add(new ChannelRotationMonitor(activeStates,
+                ((SourceConfigTunerMultipleFrequency)channel.getSourceConfiguration()).getFrequencyRotationDelay()));
         }
     }
 
@@ -385,7 +387,8 @@ public class DecoderFactory
         {
             List<State> activeStates = new ArrayList<>();
             activeStates.add(State.CONTROL);
-            modules.add(new ChannelRotationMonitor(activeStates, decodeConfig.getChannelRotationDelay()));
+            modules.add(new ChannelRotationMonitor(activeStates,
+                ((SourceConfigTunerMultipleFrequency)channel.getSourceConfiguration()).getFrequencyRotationDelay()));
         }
     }
 

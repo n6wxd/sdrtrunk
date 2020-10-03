@@ -17,33 +17,12 @@
  * ****************************************************************************
  */
 
-package io.github.dsheirer.source.tuner.channel.rotation;
-
-import io.github.dsheirer.channel.state.State;
-import io.github.dsheirer.module.ModuleEventBusMessage;
+package io.github.dsheirer.module;
 
 /**
- * Request to add a channel state to the list of active channel states monitored by the channel rotation monitor.
+ * Base module event bus message.  All classes that are passed over a processing chain event bus should extend this
+ * base class.
  */
-public class AddChannelRotationActiveStateRequest extends ModuleEventBusMessage
+public abstract class ModuleEventBusMessage
 {
-    private State mState;
-
-    /**
-     * Constructs an instance
-     * @param state to add
-     */
-    public AddChannelRotationActiveStateRequest(State state)
-    {
-        mState = state;
-    }
-
-    /**
-     * State to add to the list of active states
-     * @return state
-     */
-    public State getState()
-    {
-        return mState;
-    }
 }

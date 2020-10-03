@@ -219,40 +219,16 @@ public class ChannelProcessingManager implements Listener<ChannelEvent>
                 }
                 break;
             case REQUEST_DISABLE:
-                if(channel.isProcessing())
-                {
-                    try
-                    {
-                        switch(channel.getChannelType())
-                        {
-                            case STANDARD:
-                                stopProcessing(channel, true);
-                                break;
-                            case TRAFFIC:
-                                //Don't remove traffic channel processing chains
-                                //until explicitly deleted, so that we can reuse them
-                                stopProcessing(channel, false);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    catch(ChannelException ce)
-                    {
-                        mLog.error("Error stopping channel [" + channel.getName() + "] - " + ce.getMessage());
-                    }
-                }
-                break;
             case NOTIFICATION_DELETE:
                 if(channel.isProcessing())
                 {
                     try
                     {
-                        stopProcessing(channel, true);
+                        stopProcessing(channel);
                     }
                     catch(ChannelException ce)
                     {
-                        mLog.error("Error stopping deleted channel [" + channel.getName() + "] - " + ce.getMessage());
+                        mLog.error("Error stopping channel [" + channel.getName() + "] - " + ce.getMessage());
                     }
                 }
                 break;
@@ -303,7 +279,7 @@ public class ChannelProcessingManager implements Listener<ChannelEvent>
      */
     public void stop(Channel channel) throws ChannelException
     {
-        stopProcessing(channel, !channel.isTrafficChannel());
+        stopProcessing(channel);
     }
 
     /**
@@ -388,7 +364,7 @@ public class ChannelProcessingManager implements Listener<ChannelEvent>
 
                         try
                         {
-                            stopProcessing(toShutdown, true);
+                            stopProcessing(toShutdown);
                         }
                         catch(ChannelException ce)
                         {
@@ -494,9 +470,8 @@ public class ChannelProcessingManager implements Listener<ChannelEvent>
      * Stops the channel/processing chain.
      *
      * @param channel to stop
-     * @param remove set to true to remove the associated processing chain.
      */
-    private void stopProcessing(Channel channel, boolean remove) throws ChannelException
+    private void stopProcessing(Channel channel) throws ChannelException
     {
         //This has to be done on the FX event thread when the playlist editor is constructed
         Platform.runLater(() -> channel.setProcessing(false));
@@ -522,16 +497,12 @@ public class ChannelProcessingManager implements Listener<ChannelEvent>
 
             mChannelEventBroadcaster.broadcast(new ChannelEvent(channel, ChannelEvent.Event.NOTIFICATION_PROCESSING_STOP));
 
-//            if(remove)
-//            {
-                mChannelEventBroadcaster.removeListener(processingChain);
-                mProcessingChains.remove(channel);
+            mChannelEventBroadcaster.removeListener(processingChain);
+            mProcessingChains.remove(channel);
 
-                //Unregister for event bus requests and notifications
-                processingChain.getEventBus().unregister(ChannelProcessingManager.this);
-
-                processingChain.dispose();
-//            }
+            //Unregister for event bus requests and notifications
+            processingChain.getEventBus().unregister(ChannelProcessingManager.this);
+            processingChain.dispose();
         }
         else
         {
@@ -558,7 +529,7 @@ public class ChannelProcessingManager implements Listener<ChannelEvent>
         {
             try
             {
-                stopProcessing(channel, true);
+                stopProcessing(channel);
             }
             catch(ChannelException ce)
             {

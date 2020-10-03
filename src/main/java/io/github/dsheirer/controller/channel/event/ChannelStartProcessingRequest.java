@@ -22,12 +22,13 @@ package io.github.dsheirer.controller.channel.event;
 import io.github.dsheirer.channel.IChannelDescriptor;
 import io.github.dsheirer.controller.channel.Channel;
 import io.github.dsheirer.identifier.IdentifierCollection;
+import io.github.dsheirer.module.ModuleEventBusMessage;
 import io.github.dsheirer.module.decode.traffic.TrafficChannelManager;
 
 /**
  * Request to start/enable processing for the specified channel
  */
-public class ChannelStartProcessingRequest
+public class ChannelStartProcessingRequest extends ModuleEventBusMessage
 {
     private Channel mChannel;
     private IChannelDescriptor mChannelDescriptor;

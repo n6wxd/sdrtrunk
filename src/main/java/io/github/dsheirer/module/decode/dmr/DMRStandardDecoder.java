@@ -163,15 +163,6 @@ public class DMRStandardDecoder extends DMRDecoder
         return filter;
     }
 
-    public void dispose()
-    {
-        super.dispose();
-
-        mBasebandFilter.dispose();
-        mBasebandFilter = null;
-
-        mMessageFramer = null;
-    }
     @Override
     protected void process(SourceEvent sourceEvent)
     {

@@ -154,20 +154,12 @@ public class DMRConfigurationEditor extends ChannelConfigurationEditor
             GridPane.setConstraints(directionLabel, 3, row);
             gridPane.getChildren().add(directionLabel);
 
-            Label rotationDelayLabel = new Label("   Channel Rotation Delay (ms)");
-            GridPane.setHalignment(rotationDelayLabel, HPos.RIGHT);
-            GridPane.setConstraints(rotationDelayLabel, 4, row);
-            gridPane.getChildren().add(rotationDelayLabel);
-
-            GridPane.setConstraints(getChannelRotationDelaySpinner(), 5, row);
-            gridPane.getChildren().add(getChannelRotationDelaySpinner());
-
             Label timeslotTableLabel = new Label("Logical Slot Number (LSN) to Frequency Map. Required for: Connect Plus and Tier-III systems that don't use absolute frequencies");
             GridPane.setHalignment(timeslotTableLabel, HPos.LEFT);
-            GridPane.setConstraints(timeslotTableLabel, 0, ++row, 6, 1);
+            GridPane.setConstraints(timeslotTableLabel, 0, ++row, 4, 1);
             gridPane.getChildren().add(timeslotTableLabel);
 
-            GridPane.setConstraints(getTimeslotTable(), 0, ++row, 6, 3);
+            GridPane.setConstraints(getTimeslotTable(), 0, ++row, 4, 3);
             gridPane.getChildren().add(getTimeslotTable());
 
             VBox buttonsBox = new VBox();
@@ -175,7 +167,7 @@ public class DMRConfigurationEditor extends ChannelConfigurationEditor
             buttonsBox.setSpacing(10);
             buttonsBox.getChildren().addAll(getAddTimeslotFrequencyButton(), getDeleteTimeslotFrequencyButton());
 
-            GridPane.setConstraints(buttonsBox, 6, row, 1, 3);
+            GridPane.setConstraints(buttonsBox, 4, row, 1, 3);
             gridPane.getChildren().addAll(buttonsBox);
 
             row += 3;
@@ -578,7 +570,6 @@ public class DMRConfigurationEditor extends ChannelConfigurationEditor
 
             getIgnoreDataCallsButton().setSelected(decodeConfig.getIgnoreDataCalls());
             getTrafficChannelPoolSizeSpinner().getValueFactory().setValue(decodeConfig.getTrafficChannelPoolSize());
-            getChannelRotationDelaySpinner().getValueFactory().setValue((int)decodeConfig.getChannelRotationDelay());
 
             for(TimeslotFrequency timeslotFrequency: decodeConfig.getTimeslotMap())
             {
@@ -607,7 +598,7 @@ public class DMRConfigurationEditor extends ChannelConfigurationEditor
             config = new DecodeConfigDMR();
         }
 
-        config.setChannelRotationDelay(getChannelRotationDelaySpinner().getValue());
+//        config.setChannelRotationDelay(getChannelRotationDelaySpinner().getValue());
         config.setIgnoreDataCalls(getIgnoreDataCallsButton().isSelected());
         config.setTrafficChannelPoolSize(getTrafficChannelPoolSizeSpinner().getValue());
         config.setTimeslotMap(new ArrayList<>(getTimeslotTable().getItems()));
