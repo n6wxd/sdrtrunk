@@ -30,9 +30,18 @@ Use 7-zip or any zip utility to unzip the release file
 ## Start the application
 
 Once unzipped, open a command prompt to where you unzipped the release.  Change to the **/bin** directory and use the launch script to start the application:
-* **Windows** sdr-trunk.bat
-* **Linux/OSX** ./sdr-trunk
+* **Windows** `sdr-trunk.bat`
+* **Linux/OSX** `./sdr-trunk`
 
+For starting in "headless" mode (disable gui). Append `--headless` to the launch script:
+* **Windows** `sdr-trunk.bat --headless`
+* **Linux/OSX** `./sdr-trunk --headless`
+
+**Note: Make sure that a channel is enabled to Auto-Start on launch.**
+
+`--silent` can also be passed to launch script to disable audio output.
+
+ 
 ## Optional - P25 Audio
 If you're using sdrtrunk with a P25 trunked radio system, the [JMBE](https://github.com/DSheirer/sdrtrunk/wiki/JMBE) wiki page contains instructions for downloading the JMBE audio library source code and compiling the JMBE library.  Once you have compiled the library, launch the sdrtrunk application.  From the menu bar, choose **View >> Preferences**.  In the **JMBE Audio Codec** section, update the path to where your compiled JMBE library is located.  Any channels that are started after you set the path will be able to produce P25 audio.
 
