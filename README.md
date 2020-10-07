@@ -17,7 +17,7 @@ If you simply want to download and run the program, please follow these instruct
 
 ## Download the latest sdrtrunk release for your operating system
  
-All release versions of sdrtrunk are available from the [releases](https://github.com/DSheirer/sdrtrunk/releases) tab.
+All release versions of sdrtrunk are available from the [releases](https://github.com/n6wxd/sdrtrunk/releases) tab.
 
 * **(alpha)** These versions are under development feature previews and likely to contain bugs and unexpected behavior.
 * **(beta)** These versions are currently being tested for bugs and functionality prior to final release.
