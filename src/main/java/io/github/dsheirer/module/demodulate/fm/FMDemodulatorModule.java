@@ -22,7 +22,10 @@ import io.github.dsheirer.dsp.filter.fir.FIRFilterSpecification;
 import io.github.dsheirer.dsp.filter.fir.complex.ComplexFIRFilter2;
 import io.github.dsheirer.dsp.filter.resample.RealResampler;
 import io.github.dsheirer.dsp.fm.FMDemodulator;
+import io.github.dsheirer.dsp.gain.ComplexAGCSquelchControl;
 import io.github.dsheirer.module.Module;
+import io.github.dsheirer.module.decode.config.DecodeConfiguration;
+import io.github.dsheirer.module.decode.nbfm.DecodeConfigNBFM;
 import io.github.dsheirer.sample.Listener;
 import io.github.dsheirer.sample.buffer.IReusableBufferProvider;
 import io.github.dsheirer.sample.buffer.IReusableComplexBufferListener;
@@ -30,6 +33,7 @@ import io.github.dsheirer.sample.buffer.ReusableComplexBuffer;
 import io.github.dsheirer.sample.buffer.ReusableFloatBuffer;
 import io.github.dsheirer.source.ISourceEventListener;
 import io.github.dsheirer.source.SourceEvent;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +49,13 @@ public class FMDemodulatorModule extends Module implements ISourceEventListener,
 
     private ComplexFIRFilter2 mIQFilter;
     private FMDemodulator mDemodulator = new FMDemodulator();
+    private ComplexAGCSquelchControl mAGCSquelch;
     private RealResampler mResampler;
     private SourceEventProcessor mSourceEventProcessor = new SourceEventProcessor();
     private Listener<ReusableFloatBuffer> mResampledReusableBufferListener;
     private double mChannelBandwidth;
     private double mOutputSampleRate;
+
 
     /**
      * Creates an FM demodulator for the specified channel bandwidth and output sample rate.
@@ -62,6 +68,25 @@ public class FMDemodulatorModule extends Module implements ISourceEventListener,
     {
         mChannelBandwidth = channelBandwidth;
         mOutputSampleRate = outputSampleRate;
+
+		mAGCSquelch = null;
+    }
+
+    /**
+     * Creates an FM demodulator for the specified channel bandwidth, output sample rate and squelch level.
+     *
+     * for single channel NBFM with squelch.
+     */
+    public FMDemodulatorModule(double channelBandwidth, double outputSampleRate, double squelchLevel, boolean squelchMode)
+    {
+        mChannelBandwidth = channelBandwidth;
+        mOutputSampleRate = outputSampleRate;
+
+    	mAGCSquelch = new ComplexAGCSquelchControl(1.0f, (float) squelchLevel);
+		if (squelchMode == true)
+			mAGCSquelch.setSquelchEnable();
+		else
+			mAGCSquelch.setSquelchDisable();
     }
 
     @Override
@@ -87,6 +112,7 @@ public class FMDemodulatorModule extends Module implements ISourceEventListener,
 
         mDemodulator.dispose();
         mDemodulator = null;
+        mAGCSquelch = null;
     }
 
     @Override
@@ -117,6 +143,10 @@ public class FMDemodulatorModule extends Module implements ISourceEventListener,
         mResampledReusableBufferListener = null;
     }
 
+
+	private static int display_count = 0;
+	private static int display_enable = 0;
+
     @Override
     public void receive(ReusableComplexBuffer reusableComplexBuffer)
     {
@@ -128,16 +158,58 @@ public class FMDemodulatorModule extends Module implements ISourceEventListener,
         }
 
         ReusableComplexBuffer basebandFilteredBuffer = mIQFilter.filter(reusableComplexBuffer);
-        ReusableFloatBuffer demodulatedBuffer = mDemodulator.demodulate(basebandFilteredBuffer);
 
-        if(mResampler != null)
-        {
-            mResampler.resample(demodulatedBuffer);
-        }
-        else
-        {
-            demodulatedBuffer.decrementUserCount();
-        }
+		if ( mAGCSquelch == null )
+		{
+		    ReusableFloatBuffer demodulatedBuffer = mDemodulator.demodulate(basebandFilteredBuffer);
+
+		    if(mResampler != null)
+		    {
+		        mResampler.resample(demodulatedBuffer);
+		    }
+		    else
+		    {
+		        demodulatedBuffer.decrementUserCount();
+		    }
+		}
+		else
+		{
+		    ReusableFloatBuffer rssiBuffer = mAGCSquelch.process(basebandFilteredBuffer);
+			
+			display_enable = ( ++display_count) % 30;
+
+			if (mAGCSquelch.getSquelchMode() == mAGCSquelch.SQUELCH_SIGNAL_HIGH ||
+				mAGCSquelch.getSquelchMode() == mAGCSquelch.SQUELCH_DISABLED)
+			{
+				if (display_enable == 0)	
+					mLog.info("=====mAGCSquelch: Squelch Is Open.");
+				
+				basebandFilteredBuffer.incrementUserCount();
+		    	ReusableFloatBuffer demodulatedBuffer = mDemodulator.demodulate(basebandFilteredBuffer);
+
+		    	if(mResampler != null)
+		    	{
+		        	mResampler.resample(demodulatedBuffer);
+		    	}
+		    	else
+		    	{
+		        	demodulatedBuffer.decrementUserCount();
+		    	}
+			}
+			else
+			{
+				if (display_enable == 0) 	
+					mLog.info("===== mAGCSquelch: Squelch Is Closed." );
+			}
+
+			if (display_enable == 0) 
+			{
+				mLog.info("             Current rssi:" + mAGCSquelch.getRssi());
+				mLog.info("Current Squelch Threshold:" + mAGCSquelch.getSquelchThreshold());
+				mLog.info("      Current SquelchMode:" + mAGCSquelch.getSquelchMode());
+				mLog.info("                  " );
+			}
+		}
     }
 
     /**

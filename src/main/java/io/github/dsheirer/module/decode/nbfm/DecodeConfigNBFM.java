@@ -28,6 +28,8 @@ import io.github.dsheirer.source.tuner.channel.ChannelSpecification;
 public class DecodeConfigNBFM extends DecodeConfiguration
 {
     private Bandwidth mBandwidth = Bandwidth.BW_12_5;
+    private float mSquelchLevel;
+    private boolean mSquelchMode = false;
     private boolean mRecordAudio = false;
 
     public DecodeConfigNBFM()
@@ -71,6 +73,40 @@ public class DecodeConfigNBFM extends DecodeConfiguration
         mBandwidth = bandwidth;
     }
 
+    /**
+     * Sets the squelch level
+     */
+    public void setSquelchLevel(float squelch_level)
+    {
+        mSquelchLevel = squelch_level;
+    }
+
+    /**
+     * Gets the squelch level
+     */
+    @JacksonXmlProperty(isAttribute = true, localName = "squelchLevel")
+    public float getSquelchLevel()
+    {
+        return mSquelchLevel;
+    }
+
+    /**
+     * Sets the squelch mode
+     */
+    public void setSquelchMode(boolean squelch_mode)
+    {
+        mSquelchMode = squelch_mode;
+    }
+
+    /**
+     * Gets the squelch mode
+     */
+    @JacksonXmlProperty(isAttribute = true, localName = "squelchMode")
+    public boolean getSquelchMode()
+    {
+        return mSquelchMode;
+    }
+
     @JacksonXmlProperty(isAttribute =  true, localName = "recordAudio")
     public boolean getRecordAudio()
     {
@@ -100,4 +136,5 @@ public class DecodeConfigNBFM extends DecodeConfiguration
             return mLabel;
         }
     }
+
 }

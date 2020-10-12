@@ -27,7 +27,7 @@ public class AMDemodulator
 {
     private ReusableBufferQueue mReusableBufferQueue = new ReusableBufferQueue("AMDemodulator");
     private int mOutputBufferPointer;
-    private float mGain;
+    private float mGain = 1.0f;
 
     /**
      * Constructs this demodulator where the specified gain is applied to demodulated output samples.

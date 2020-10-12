@@ -38,8 +38,12 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.TextAlignment;
+import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.control.ToggleSwitch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +59,9 @@ public class AMConfigurationEditor extends ChannelConfigurationEditor
     private TitledPane mSourcePane;
     private ToggleSwitch mAudioRecordSwitch;
     private ToggleSwitch mBasebandRecordSwitch;
+    private ToggleSwitch mSquelchModeSwitch;
+    private Slider mSquelchLevelSlider;
+    private SegmentedButton mBandwidthButton;
     private SourceConfigurationEditor mSourceConfigurationEditor;
 
     /**
@@ -92,8 +99,41 @@ public class AMConfigurationEditor extends ChannelConfigurationEditor
         {
             mDecoderPane = new TitledPane();
             mDecoderPane.setText("Decoder: AM");
-            mDecoderPane.setExpanded(false);
-            mDecoderPane.setDisable(true);
+            mDecoderPane.setExpanded(true);
+
+ 			GridPane gridPane = new GridPane();
+            gridPane.setPadding(new Insets(10,10,10,10));
+            gridPane.setHgap(10);
+            gridPane.setVgap(10);
+
+            Label squelchModeLabel = new Label("Channel Squelch Enable");
+            GridPane.setHalignment(squelchModeLabel, HPos.LEFT);
+            GridPane.setConstraints(squelchModeLabel, 0, 1);
+            gridPane.getChildren().add(squelchModeLabel);
+
+            GridPane.setConstraints(getSquelchModeSwitch(), 1, 1);
+            gridPane.getChildren().add(getSquelchModeSwitch());
+
+        	Label squelchLevelLabel = new Label("Channel Squelch Level");
+            GridPane.setHalignment(squelchLevelLabel, HPos.LEFT);
+            GridPane.setConstraints(squelchLevelLabel, 0, 2);
+            gridPane.getChildren().add(squelchLevelLabel);
+
+            GridPane.setConstraints(getSquelchLevelSlider(), 1, 2);
+        	gridPane.getChildren().add(getSquelchLevelSlider());
+
+            mDecoderPane.setContent(gridPane);
+
+            //Special handling - the pill button doesn't like to set a selected state if the pane is not expanded,
+            //so detect when the pane is expanded and refresh the config view
+            mDecoderPane.expandedProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue)
+                {
+                    //Reset the config so the editor gets updated
+                    setDecoderConfiguration(getItem().getDecodeConfiguration());
+                }
+            });
+
         }
 
         return mDecoderPane;
@@ -148,6 +188,51 @@ public class AMConfigurationEditor extends ChannelConfigurationEditor
         return mSourceConfigurationEditor;
     }
 
+    private ToggleSwitch getSquelchModeSwitch()
+    {
+        if(mSquelchModeSwitch == null)
+        {
+            mSquelchModeSwitch = new ToggleSwitch();
+            mSquelchModeSwitch.setDisable(true);
+            mSquelchModeSwitch.setTextAlignment(TextAlignment.RIGHT);
+            mSquelchModeSwitch.selectedProperty().addListener((observable, oldValue, newValue) -> {
+				if(newValue != oldValue)
+                {
+					DecodeConfigAM config = (DecodeConfigAM) getItem().getDecodeConfiguration();
+					config.setSquelchMode(newValue.booleanValue());
+					modifiedProperty().set(true);
+				}
+      		});
+        }
+
+        return mSquelchModeSwitch;
+    }
+
+    private Slider getSquelchLevelSlider()
+    {
+        if(mSquelchLevelSlider == null)
+        {
+        	mSquelchLevelSlider = new Slider(-120, 0, 0.5);
+            mSquelchLevelSlider.setDisable(false);
+ 			mSquelchLevelSlider.setShowTickMarks(false);
+ 			mSquelchLevelSlider.setShowTickLabels(true);
+ 			mSquelchLevelSlider.setMajorTickUnit(0.2f);
+ 			mSquelchLevelSlider.setBlockIncrement(0.1f);
+
+      		// Adding Listener to value property.
+		    mSquelchLevelSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue != oldValue)
+                {
+					DecodeConfigAM config = (DecodeConfigAM) getItem().getDecodeConfiguration();
+					config.setSquelchLevel(newValue.floatValue());
+					modifiedProperty().set(true);
+				}
+      		});
+        }
+
+        return mSquelchLevelSlider;
+    }
+
     private ToggleSwitch getAudioRecordSwitch()
     {
         if(mAudioRecordSwitch == null)
@@ -181,11 +266,25 @@ public class AMConfigurationEditor extends ChannelConfigurationEditor
         if(config instanceof DecodeConfigAM)
         {
             DecodeConfigAM decodeConfig = (DecodeConfigAM)config;
+
+            getSquelchModeSwitch().setDisable(false);
+            getSquelchModeSwitch().selectedProperty().set(decodeConfig.getSquelchMode());
+
+            getSquelchLevelSlider().setDisable(false);
+            getSquelchLevelSlider().setValue(decodeConfig.getSquelchLevel());
+
+
             getAudioRecordSwitch().setDisable(false);
             getAudioRecordSwitch().selectedProperty().set(decodeConfig.getRecordAudio());
         }
         else
         {
+            getSquelchModeSwitch().setDisable(true);
+            getSquelchModeSwitch().selectedProperty().set(false);
+
+            getSquelchLevelSlider().setDisable(true);
+            getSquelchLevelSlider().setValue(0.0f);
+
             getAudioRecordSwitch().setDisable(true);
             getAudioRecordSwitch().selectedProperty().set(false);
         }
@@ -205,6 +304,8 @@ public class AMConfigurationEditor extends ChannelConfigurationEditor
             config = new DecodeConfigAM();
         }
 
+        config.setSquelchMode(getSquelchModeSwitch().isSelected());
+		config.setSquelchLevel((float) getSquelchLevelSlider().getValue());
         config.setRecordAudio(getAudioRecordSwitch().isSelected());
         getItem().setDecodeConfiguration(config);
     }

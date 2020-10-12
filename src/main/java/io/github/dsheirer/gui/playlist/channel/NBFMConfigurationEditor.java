@@ -43,6 +43,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.TextAlignment;
 import org.controlsfx.control.SegmentedButton;
@@ -66,6 +67,8 @@ public class NBFMConfigurationEditor extends ChannelConfigurationEditor
     private TitledPane mSourcePane;
     private ToggleSwitch mAudioRecordSwitch;
     private ToggleSwitch mBasebandRecordSwitch;
+    private ToggleSwitch mSquelchModeSwitch;
+    private Slider mSquelchLevelSlider;
     private SegmentedButton mBandwidthButton;
     private SourceConfigurationEditor mSourceConfigurationEditor;
     private AuxDecoderConfigurationEditor mAuxDecoderConfigurationEditor;
@@ -109,19 +112,36 @@ public class NBFMConfigurationEditor extends ChannelConfigurationEditor
         {
             mDecoderPane = new TitledPane();
             mDecoderPane.setText("Decoder: NBFM");
-            mDecoderPane.setExpanded(false);
+            mDecoderPane.setExpanded(true);
 
             GridPane gridPane = new GridPane();
             gridPane.setPadding(new Insets(10,10,10,10));
             gridPane.setHgap(10);
+            gridPane.setVgap(10);
+
+            GridPane.setConstraints(getBandwidthButton(), 1, 0);
+            gridPane.getChildren().add(getBandwidthButton());
 
             Label bandwidthLabel = new Label("Channel Bandwidth");
             GridPane.setHalignment(bandwidthLabel, HPos.LEFT);
             GridPane.setConstraints(bandwidthLabel, 0, 0);
             gridPane.getChildren().add(bandwidthLabel);
 
-            GridPane.setConstraints(getBandwidthButton(), 1, 0);
-            gridPane.getChildren().add(getBandwidthButton());
+            Label squelchModeLabel = new Label("Channel Squelch Enable");
+            GridPane.setHalignment(squelchModeLabel, HPos.LEFT);
+            GridPane.setConstraints(squelchModeLabel, 0, 1);
+            gridPane.getChildren().add(squelchModeLabel);
+
+            GridPane.setConstraints(getSquelchModeSwitch(), 1, 1);
+            gridPane.getChildren().add(getSquelchModeSwitch());
+
+        	Label squelchLevelLabel = new Label("Channel Squelch Level");
+            GridPane.setHalignment(squelchLevelLabel, HPos.LEFT);
+            GridPane.setConstraints(squelchLevelLabel, 0, 2);
+            gridPane.getChildren().add(squelchLevelLabel);
+
+            GridPane.setConstraints(getSquelchLevelSlider(), 1, 2);
+        	gridPane.getChildren().add(getSquelchLevelSlider());
 
             mDecoderPane.setContent(gridPane);
 
@@ -260,6 +280,51 @@ public class NBFMConfigurationEditor extends ChannelConfigurationEditor
         return mBandwidthButton;
     }
 
+    private ToggleSwitch getSquelchModeSwitch()
+    {
+        if(mSquelchModeSwitch == null)
+        {
+            mSquelchModeSwitch = new ToggleSwitch();
+            mSquelchModeSwitch.setDisable(true);
+            mSquelchModeSwitch.setTextAlignment(TextAlignment.RIGHT);
+            mSquelchModeSwitch.selectedProperty().addListener((observable, oldValue, newValue) -> {
+				if(newValue != oldValue)
+                {
+					DecodeConfigNBFM config = (DecodeConfigNBFM) getItem().getDecodeConfiguration();
+					config.setSquelchMode(newValue.booleanValue());
+					modifiedProperty().set(true);
+				}
+      		});
+        }
+
+        return mSquelchModeSwitch;
+    }
+
+    private Slider getSquelchLevelSlider()
+    {
+        if(mSquelchLevelSlider == null)
+        {
+        	mSquelchLevelSlider = new Slider(-120, 0, 0.5);
+            mSquelchLevelSlider.setDisable(false);
+ 			mSquelchLevelSlider.setShowTickMarks(false);
+ 			mSquelchLevelSlider.setShowTickLabels(true);
+ 			mSquelchLevelSlider.setMajorTickUnit(0.2f);
+ 			mSquelchLevelSlider.setBlockIncrement(0.1f);
+
+      		// Adding Listener to value property.
+		    mSquelchLevelSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue != oldValue)
+                {
+					DecodeConfigNBFM config = (DecodeConfigNBFM) getItem().getDecodeConfiguration();
+					config.setSquelchLevel(newValue.floatValue());
+					modifiedProperty().set(true);
+				}
+      		});
+        }
+
+        return mSquelchLevelSlider;
+    }
+
     private ToggleSwitch getAudioRecordSwitch()
     {
         if(mAudioRecordSwitch == null)
@@ -306,6 +371,12 @@ public class NBFMConfigurationEditor extends ChannelConfigurationEditor
                 toggle.setSelected(toggle.getUserData() == bandwidth);
             }
 
+            getSquelchModeSwitch().setDisable(false);
+            getSquelchModeSwitch().selectedProperty().set(decodeConfigNBFM.getSquelchMode());
+
+            getSquelchLevelSlider().setDisable(false);
+            getSquelchLevelSlider().setValue(decodeConfigNBFM.getSquelchLevel());
+
             getAudioRecordSwitch().setDisable(false);
             getAudioRecordSwitch().selectedProperty().set(decodeConfigNBFM.getRecordAudio());
         }
@@ -317,6 +388,12 @@ public class NBFMConfigurationEditor extends ChannelConfigurationEditor
             {
                 toggle.setSelected(false);
             }
+
+            getSquelchModeSwitch().setDisable(true);
+            getSquelchModeSwitch().selectedProperty().set(false);
+
+            getSquelchLevelSlider().setDisable(true);
+            getSquelchLevelSlider().setValue(0.0f);
 
             getAudioRecordSwitch().setDisable(true);
             getAudioRecordSwitch().selectedProperty().set(false);
@@ -346,6 +423,8 @@ public class NBFMConfigurationEditor extends ChannelConfigurationEditor
 
         config.setBandwidth(bandwidth);
 
+        config.setSquelchMode(getSquelchModeSwitch().isSelected());
+		config.setSquelchLevel((float) getSquelchLevelSlider().getValue());
         config.setRecordAudio(getAudioRecordSwitch().isSelected());
 
         getItem().setDecodeConfiguration(config);
