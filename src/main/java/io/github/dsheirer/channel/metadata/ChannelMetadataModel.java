@@ -30,6 +30,7 @@ import io.github.dsheirer.eventbus.MyEventBus;
 import io.github.dsheirer.identifier.Identifier;
 import io.github.dsheirer.identifier.decoder.DecoderLogicalChannelNameIdentifier;
 import io.github.dsheirer.preference.PreferenceType;
+import io.github.dsheirer.sample.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,10 +60,11 @@ public class ChannelMetadataModel extends AbstractTableModel implements IChannel
 
     private List<ChannelMetadata> mChannelMetadata = new ArrayList();
     private Map<ChannelMetadata,Channel> mMetadataChannelMap = new HashMap();
+    private Listener<ChannelAndMetadata> mChannelAddListener;
 
     public ChannelMetadataModel()
     {
-        MyEventBus.getEventBus().register(this);
+        MyEventBus.getGlobalEventBus().register(this);
     }
 
     /**
@@ -87,21 +89,65 @@ public class ChannelMetadataModel extends AbstractTableModel implements IChannel
         }
     }
 
-    public void add(Collection<ChannelMetadata> channelMetadatas, Channel channel)
+    public void dispose()
+    {
+        MyEventBus.getGlobalEventBus().unregister(this);
+    }
+
+    /**
+     * Lookup model row for the specified channel metadata
+     */
+    public int getRow(ChannelMetadata channelMetadata)
+    {
+        if(mChannelMetadata.contains(channelMetadata))
+        {
+            return mChannelMetadata.indexOf(channelMetadata);
+        }
+
+        return -1;
+    }
+
+    /**
+     * Registers the listener to be notified when channel metadata(s) are added to the model.
+     * @param listener to receive channel associated with the channel metadata(s) that were added
+     */
+    public void setChannelAddListener(Listener<ChannelAndMetadata> listener)
+    {
+        mChannelAddListener = listener;
+    }
+
+    public void add(ChannelAndMetadata channelAndMetadata)
     {
         //Execute on the swing thread to avoid threading issues
         if (!SDRTrunk.mHeadlessMode) {
+        	EventQueue.invokeLater(() -> {
+            	for(ChannelMetadata channelMetadata: channelAndMetadata.getChannelMetadata())
+            	{
+                	mChannelMetadata.add(channelMetadata);
+                	mMetadataChannelMap.put(channelMetadata, channelAndMetadata.getChannel());
+                	int index = mChannelMetadata.indexOf(channelMetadata);
+                	fireTableRowsInserted(index, index);
+                	channelMetadata.setUpdateEventListener(ChannelMetadataModel.this);
+            	}
 
-            EventQueue.invokeLater(() -> {
-                for(ChannelMetadata channelMetadata: channelMetadatas)
-                {
-                    mChannelMetadata.add(channelMetadata);
-                    mMetadataChannelMap.put(channelMetadata, channel);
-                    int index = mChannelMetadata.indexOf(channelMetadata);
-                    fireTableRowsInserted(index, index);
-                    channelMetadata.setUpdateEventListener(ChannelMetadataModel.this);
-                }
-            });
+            	if(mChannelAddListener != null)
+            	{
+                	mChannelAddListener.receive(channelAndMetadata);
+            	}
+        	});
+		}
+    }
+
+    /**
+     * Updates the mapping of channel metadata to the channel used to create the channel metadatas (and processing chain)
+     * @param channelMetadatas
+     * @param channel
+     */
+    public void updateChannelMetadataToChannelMap(Collection<ChannelMetadata> channelMetadatas, Channel channel)
+    {
+        for(ChannelMetadata channelMetadata: channelMetadatas)
+        {
+            mMetadataChannelMap.put(channelMetadata, channel);
         }
     }
 

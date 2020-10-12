@@ -102,20 +102,6 @@ public class FMDemodulatorModule extends Module implements ISourceEventListener,
     }
 
     @Override
-    public void dispose()
-    {
-        if(mIQFilter != null)
-        {
-            mIQFilter.dispose();
-            mIQFilter = null;
-        }
-
-        mDemodulator.dispose();
-        mDemodulator = null;
-        mAGCSquelch = null;
-    }
-
-    @Override
     public void reset()
     {
         mDemodulator.reset();
